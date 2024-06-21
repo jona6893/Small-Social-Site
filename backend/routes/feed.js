@@ -104,7 +104,7 @@ module.exports = function (pool) {
 
       await client.query("COMMIT");
 
-      res.status(200).send("Operation successful");
+      res.status(200).json({ message: "Operation successful" });
     } catch (err) {
       await client.query("ROLLBACK");
       console.error(err);

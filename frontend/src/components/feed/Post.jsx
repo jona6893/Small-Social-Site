@@ -11,11 +11,22 @@ function Post({post}) {
   const createdAt = new Date(post.created_at).toLocaleDateString()
 
 
-  function handelLike() {
-    tglLike(post.post_id, userInfo.user_id)
-    setLike(!like)
+async function handelLike() {
+  try {
+    setLike(!like);
+    const response = await tglLike(post.post_id, userInfo.user_id);
+    //console.log(response); // "Operation successful"
 
+
+    if (like === true) {
+      setLikes(likes - 1);
+    } else {
+      setLikes(likes + 1);
+    }
+  } catch (error) {
+    console.error(error);
   }
+}
 
 
 
