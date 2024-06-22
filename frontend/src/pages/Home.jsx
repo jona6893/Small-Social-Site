@@ -9,10 +9,10 @@ function Home() {
 
   return (
     <div className='min-h-full'>
-      <h2>Home View</h2>
-      <p>Lorem ipsum dolor sit amet, consectetur adip.</p>
+      <div className="grid gap-4">
       <PostField />
       <Feed/>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { searchUsersApi } from "../../modules/basicApis";
 import SearchResults from "./SearchResults";
 import { Link } from "react-router-dom";
+import { getFriendRequests } from "../../modules/userApis";
 
 function Sidebar({tglMenu, setTglMenu, userInfo, handleSignOut}) {
     const [searchResults, setSearchResults] = useState([]);
+    const [friendRequests, setFriendRequests] = useState([]);
     const [currentMenu, setCurrentMenu] = useState("Dashboard");
     const apiUrl = process.env.REACT_APP_API_URL;
     
@@ -19,6 +21,15 @@ function Sidebar({tglMenu, setTglMenu, userInfo, handleSignOut}) {
     console.log(searchUsers);
     setSearchResults(searchUsers);
     }
+
+    useEffect(() => {
+      async function getRequest() {
+        const request = await getFriendRequests(userInfo.user_id);
+        setFriendRequests(request);
+        console.log(request);
+      }
+      getRequest();
+    }, [])
 
 
   return (
@@ -39,18 +50,20 @@ function Sidebar({tglMenu, setTglMenu, userInfo, handleSignOut}) {
           />
         </svg>
       </button>
-      <div className="flex flex-col items-end w-fit px-4 -mx-2">
-        <a href="#" className="flex items-center">
+      <div className="flex items-end w-fit px-4 -mx-2">
+        <Link to="/home" className="flex items-center">
           <img
             className="object-cover mx-2 rounded-full h-9 w-9"
             src={apiUrl + userInfo?.image_url}
             alt="avatar"
           />
-          <span className="ml-2 font-medium text-gray-800 dark:text-gray-200">
+        </Link>
+        <div className="grid">
+          <span className="text-base font-medium text-gray-800 dark:text-gray-200">
             {userInfo?.firstName} {userInfo?.lastName}
           </span>
-        </a>
-        <span>{userInfo.email}</span>
+          <span className="text-xs text-gray-600">{userInfo.email}</span>
+        </div>
       </div>
 
       <div className="relative mt-6">
@@ -199,6 +212,21 @@ function Sidebar({tglMenu, setTglMenu, userInfo, handleSignOut}) {
             Sign out
           </button>
         </nav>
+        {friendRequests.length > 0 &&
+          friendRequests.map((request) => (
+            <div
+              key={request.friend_request_id}
+              className="flex items-center justify-between gap-4 p-2 border-b"
+            >
+              <div className="flex gap-2 items-center ">
+                <img className="w-10 h-10 rounded-full object-contain " src={apiUrl + request.image_url} alt="" />
+                <h3 className="text-base font-semibold">{request.sender}</h3>
+              </div>
+              <button className="bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600">
+                Add
+              </button>
+            </div>
+          ))}
       </div>
     </aside>
   );

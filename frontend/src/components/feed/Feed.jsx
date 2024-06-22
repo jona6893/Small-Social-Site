@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { feedStore } from '../../stores/FeedStore';
-import { getFeed, getLikes } from '../../modules/feedApis';
+import { deletePost, getFeed, getLikes } from '../../modules/feedApis';
 import Post from './Post';
 import { userStore } from '../../stores/UserStore';
+import autoAnimate from "@formkit/auto-animate";
 
 
 function Feed() {
     const {feedList, setFeedList} = feedStore();
     const {userInfo} = userStore();
+    const parent = useRef(null);
 
     useEffect(() => {
 
@@ -18,13 +20,28 @@ function Feed() {
 
         }
         console.log("feed")
-       if(userInfo.user_id){
+       if(userInfo.user_id && feedList.length === 0){
         console.log('fetching feed')
            fetchFeed();
        }
         
 
     }, [userInfo.user_id])
+
+    async function handleDelete(postId) {
+      console.log("delete");
+      const response = await deletePost(postId);
+      console.log(response);
+      if (response[0].post_id) {
+        const newFeed = feedList.filter((post) => post.post_id !== postId);
+        setFeedList(newFeed);
+      }
+    }
+
+    console.log(feedList)
+      useEffect(() => {
+        parent.current && autoAnimate(parent.current);
+      }, [parent]);
 
 
 
@@ -37,13 +54,11 @@ function Feed() {
 
 
     return (
-        <section className="mx-auto max-w-screen-xl">
-            <div className='mx-auto flex flex-col gap-4 items-center'>
-                 {sortFeed(feedList)?.map((post) => (
-                    <Post key={post.post_id} post={post}/>
-                ))} 
-            </div>
-        </section>
+      <section ref={parent} className="mx-auto w-full max-w-screen-xl flex flex-col gap-4 items-center">
+          {sortFeed(feedList)?.map((post) => (
+            <Post key={post.post_id} post={post} handleDelete={handleDelete} />
+          ))}
+      </section>
     );
 }
 

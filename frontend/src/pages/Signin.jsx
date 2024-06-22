@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import InputField from "../components/signin_signup/InputField";
 import { loginApi } from "../modules/signupApi";
 import { userStore } from "../stores/UserStore";
@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { checkSession } from "../modules/basicApis";
 function Signin() {
   const [errorMessage, setErrorMessage] = useState({error: null});
-  const { setUserInfo,userInfo } = userStore();
-
+  const { setUserInfo, } = userStore();
+  const navigate = useNavigate();
   async function handleSubmit(e) {
     e.preventDefault();
     const email = e.target.email.value;
@@ -18,9 +18,10 @@ function Signin() {
     console.log(response);
     if (response.message === "Login successful") {
       console.log("Login successful");
-      setUserInfo(response.sessionData);
+      setUserInfo(response.user);
       setTimeout(() => {
-        window.location.href = "/home";
+        return navigate(`/home/`, { replace: true });
+        //window.location.href = "/home";
       }, 1000);
     } 
     if(response.message === "Login failed") {
@@ -36,7 +37,7 @@ function Signin() {
        setUserInfo(check);
        if (check.user_id) {
          console.log("logged in");
-         window.location.href = "/home";
+         navigate(`/home/`, { replace: true });
        }
      }
      session();

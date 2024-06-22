@@ -2,7 +2,8 @@ module.exports = function (pool) {
   const express = require("express");
   const router = express.Router();
 
-  // post to feed route
+  /* ########## Post to the Feed ########## */
+
   router.post("/post-to-feed", async (req, res) => {
     console.log("made it to post to feed");
 
@@ -10,6 +11,7 @@ module.exports = function (pool) {
       const client = await pool.connect();
       const { user_id, postContent, postTitle } = req.body;
       const image = req.files?.image_url || null;
+      let insertedPost;
 
       // if no image is uploaded
       if (image === null) {
@@ -17,37 +19,57 @@ module.exports = function (pool) {
           "INSERT INTO feed (author_id, post_content, post_title, image_url) VALUES ($1, $2, $3, $4) RETURNING *",
           [user_id, postContent, postTitle, null]
         );
-        res.json(result.rows);
-        client.release();
-        console.log("no image");
-        return;
-      }
+        insertedPost = result.rows[0];
+      } else {
+
       // if image is uploaded
       console.log(image);
       // Generate a unique name for the image
       const image_name = Date.now() + "_" + image.name;
       // Save the image to a directory on your server
       let image_path = "./file/post_images/" + image_name;
+    
       image.mv(image_path, async function (err) {
         if (err) {
           client.release();
           return res.status(500).send(err);
         }
         image_path = "/post_images/" + image_name;
-        const result = await client.query(
+         const result = await client.query(
           "INSERT INTO feed (author_id, post_content, post_title, image_url) VALUES ($1, $2, $3, $4) RETURNING *",
           [user_id, postContent, postTitle, image_path]
         );
-        res.json(result.rows);
-        client.release();
+        return result
       });
+      console.log(moveImage);
+      insertedPost = moveImage.rows[0];
+    }
+    const { author_id } = insertedPost;
+    const selectResult = await client.query(
+          `SELECT f.*, u.image_url AS author_image
+      FROM feed f
+      JOIN users u ON f.author_id = u.user_id
+      WHERE f.author_id = $1
+      ORDER BY f.created_at DESC
+      LIMIT 1`, // Assuming you have a created_at column for ordering
+          [author_id]
+        );
+
+    // selectResult.rows[0] contains the feed item with the author's image
+    const result = selectResult.rows[0];
+    console.log(result);
+    res.json(result);
+    client.release();
+
+
     } catch (err) {
       console.error(err);
       res.status(500).send("An error occurred");
     }
   });
 
-  // get feed route
+  /* ########## Get Post Feed ########## */
+
   router.get("/get-feed/:user_id", async (req, res) => {
     try {
       const currentUserId = req.params.user_id;
@@ -70,8 +92,10 @@ module.exports = function (pool) {
     }
   });
 
+  /* ########## Toggle User Like on Post ########## */
+
   router.post("/tgl-like", async (req, res) => {
-    console.log("like status changed")
+    console.log("like status changed");
     const client = await pool.connect();
     const { postId, userId } = req.body;
     try {
@@ -113,6 +137,26 @@ module.exports = function (pool) {
       client.release();
     }
   });
+
+  /* ########## Delete Post ########## */
+
+  router.delete("/delete-post/:post_id", async (req, res) => {
+    try{
+      const postId = req.params.post_id;
+      const client = await pool.connect();
+      const result = await client.query(
+        `DELETE FROM feed WHERE post_id = $1 RETURNING *`,
+        [postId]
+      );
+      res.json(result.rows);
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("An error occurred");
+    }
+
+
+  })
 
   return router;
 };

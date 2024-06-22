@@ -44,7 +44,7 @@ app.use(
     origin: "http://localhost:5173", // Adjust to your frontend's address
     credentials: true,
     allowedHeaders: ["Content-Type"], // Allow necessary headers
-    methods: ["GET", "POST"], // Allow necessary methods
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allow necessary methods
   })
 );
 

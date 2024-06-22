@@ -51,3 +51,16 @@ export async function getLikes(postId, user_id) {
   const data = await response.json();
   return data;
 }
+
+
+export async function deletePost(postId) {
+  const response = await fetch(`${apiUrl}/delete-post/${postId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+  const data = await response.json();
+  return data; 
+}

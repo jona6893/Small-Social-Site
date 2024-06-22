@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
@@ -16,6 +16,7 @@ function App() {
 
         const { setUserInfo, userInfo } = userStore();
         const location = useLocation();
+        const navigate = useNavigate();
        
         useEffect(() => {
           async function session() {
@@ -30,7 +31,7 @@ function App() {
               if(location.pathname === "/signin" || location.pathname === "/signup"){
                 return;
               }
-              window.location.href = "/signin";
+              navigate("/signin", { replace: true });
             }
           }
           session();

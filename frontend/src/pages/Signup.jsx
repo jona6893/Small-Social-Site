@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import InputField from "../components/signin_signup/InputField";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signupApi } from "../modules/signupApi";
 import { ValidateEmail, ValidateFirstName, ValidateLastName, ValidatePassword } from "../modules/validate";
 import { userStore } from "../stores/UserStore";
@@ -9,6 +9,7 @@ import { checkSession } from "../modules/basicApis";
 function Signup() {
     const [errorMessage, setErrorMessage] = useState({field: null,error: null});
     const { userInfo, setUserInfo } = userStore();
+    const navigate = useNavigate();
    async function handleSubmit(e) {
         e.preventDefault();
         const email = e.target.email.value;
@@ -42,7 +43,8 @@ function Signup() {
         console.log(jsonData);
         const signUpUser = await signupApi(jsonData);
         if(signUpUser[0].user_id){
-          setUserInfo(signUpUser[0])
+          //setUserInfo(signUpUser[0])
+          navigate(`/home/`, { replace: true });
         }
         console.log(signUpUser);
     }
